@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SpellCraft • English Spelling, Paragraph Dictation & Grammar Studio</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body data-theme="charcoal">
+  <!-- Confetti Canvas -->
+  <canvas id="confettiCanvas"></canvas>
+
+  <div class="app-container">
+    <!-- Top Header & Level Progression -->
+    <header class="studio-header">
+      <div class="logo-area">
+        <div class="logo-badge">✨</div>
+        <div>
+          <h1 class="logo-title">SpellCraft Studio</h1>
+          <p class="logo-subtitle">Adaptive Level Progression • No Repeats • Dictation & Grammar</p>
+        </div>
+      </div>
+
+      <div class="header-controls">
+        <!-- Adaptive Level & XP Progression -->
+        <div class="stat-pill user-level-pill" id="userLevelPill" title="Your Skill Level increases with practice">
+          <span class="stat-icon">⚡</span>
+          <div class="level-meta">
+            <span class="level-title-text" id="userLevelTitle">Lv. 1 Novice Reader</span>
+            <div class="level-mini-bar">
+              <div class="level-mini-fill" id="levelXpBarFill" style="width: 20%;"></div>
+            </div>
+          </div>
+          <span class="xp-text" id="userXpText">20/100 XP</span>
+        </div>
+
+        <div class="stat-pill" title="Current Daily Streak">
+          <span class="stat-icon">🔥</span>
+          <span class="stat-val" id="streakVal">0</span>
+          <span class="stat-lbl">Streak</span>
+        </div>
+
+        <div class="stat-pill" title="Words Spelled Correctly (Never Repeated)">
+          <span class="stat-icon">⭐</span>
+          <span class="stat-val" id="masteredVal">0</span>
+          <span class="stat-lbl">Mastered</span>
+        </div>
+
+        <div class="stat-pill vault-pill" id="vaultHeaderPill" title="Words needing practice in your Tricky Vault">
+          <span class="stat-icon">🎯</span>
+          <span class="stat-val" id="vaultVal">0</span>
+          <span class="stat-lbl">Vault</span>
+        </div>
+
+        <!-- Theme Picker -->
+        <div class="theme-selector">
+          <label for="themeSelect">🎨</label>
+          <select id="themeSelect">
+            <option value="charcoal">🖤 Instagram Charcoal Dark</option>
+            <option value="bubblegum">🍬 Bubblegum Pastel</option>
+            <option value="matcha">🍵 Matcha & Warm Milk</option>
+            <option value="sunset">🌅 Sunset Sherbet</option>
+            <option value="cyber">⚡ Cyber Neon</option>
+            <option value="cozy">☕ Paper & Coffee</option>
+          </select>
+        </div>
+      </div>
+    </header>
+
+    <!-- Top Mode Navigation Tabs -->
+    <nav class="mode-nav">
+      <button class="mode-tab active" data-mode="hear-spell">
+        <span class="tab-emoji">🎧</span>
+        <span class="tab-text">Hear & Spell</span>
+      </button>
+      <button class="mode-tab" data-mode="paragraph-dictation">
+        <span class="tab-emoji">🎙️</span>
+        <span class="tab-text">Paragraph Dictation</span>
+      </button>
+      <button class="mode-tab" data-mode="grammar-studio">
+        <span class="tab-emoji">✍️</span>
+        <span class="tab-text">Grammar & Punctuation</span>
+      </button>
+      <button class="mode-tab" data-mode="paragraph-reader">
+        <span class="tab-emoji">📖</span>
+        <span class="tab-text">Reading & Hinglish</span>
+      </button>
+      <button class="mode-tab" data-mode="syllable-builder">
+        <span class="tab-emoji">🧩</span>
+        <span class="tab-text">Chunk Builder</span>
+      </button>
+      <button class="mode-tab" data-mode="trap-detector">
+        <span class="tab-emoji">🔍</span>
+        <span class="tab-text">Spot The Trap</span>
+      </button>
+      <button class="mode-tab" data-mode="vault">
+        <span class="tab-emoji">📓</span>
+        <span class="tab-text">Tricky Vault</span>
+      </button>
+    </nav>
+
+    <!-- Filter & Search Bar: Difficulty Levels + Search -->
+    <div class="filter-search-container">
+      <div class="level-pills-row">
+        <span class="filter-lbl">Difficulty:</span>
+        <button class="level-pill active" data-level="all">🌐 All (1,250)</button>
+        <button class="level-pill" data-level="beginner">🟢 Beginner (Easy)</button>
+        <button class="level-pill" data-level="medium">🟡 Medium (Work & Daily)</button>
+        <button class="level-pill" data-level="hard">🔴 Hard (Advanced)</button>
+      </div>
+
+      <div class="search-box-wrapper">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="globalWordSearch" placeholder="Search word or Hindi meaning..." />
+      </div>
+    </div>
+
+    <!-- Category Pack Pills -->
+    <div class="category-bar">
+      <span class="category-label">Packs:</span>
+      <div class="category-pills" id="categoryPills"></div>
+    </div>
+
+    <!-- MAIN INTERACTIVE STUDIO CARD -->
+    <main class="main-card">
+      
+      <!-- ============================================== -->
+      <!-- 1. HEAR & SPELL MODE (ADAPTIVE NO-REPEAT) -->
+      <!-- ============================================== -->
+      <section id="hearSpellSection" class="game-section active-section">
+        <div class="card-top-status">
+          <div class="pack-badge-group">
+            <span class="pack-tag" id="currentPackTag">Daily Basics</span>
+            <span class="level-badge" id="currentLevelBadge">🟢 Beginner</span>
+            <span class="no-repeat-badge">🔒 Never repeats once mastered</span>
+          </div>
+          <div class="progress-indicator">
+            <span id="cardProgressText">Remaining: 120 words</span>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill" id="progressBarFill" style="width: 12%"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="audio-hero-zone">
+          <div class="audio-buttons-wrapper">
+            <button class="btn-audio-main" id="btnPlayNormal" title="Listen (Shortcut: 'R' or Spacebar)">
+              <span class="speaker-wave">🔊</span>
+              <span class="audio-label">Pronounce Word</span>
+              <span class="audio-shortcut">Press 'R' or Space</span>
+            </button>
+            <button class="btn-audio-slow" id="btnPlaySlow" title="Slow motion phonics (0.65x)">
+              <span>🐢</span>
+              <span>Slow Phonics</span>
+            </button>
+          </div>
+
+          <!-- Phonetic & Hinglish Pronunciation Guide -->
+          <div class="hinglish-speak-card">
+            <div class="hinglish-title-row">
+              <span class="g-translate-badge">🗣️ How To Speak (Hinglish):</span>
+              <span class="hinglish-readout" id="hinglishSpeakText">एलिफेंट (el-uh-funt)</span>
+            </div>
+            <div class="hinglish-meaning-row">
+              <span class="meaning-lbl">Hindi Meaning:</span>
+              <span class="hinglish-meaning-text" id="hinglishMeaningText">Bada haathi</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="clue-container">
+          <div class="clue-item definition-box">
+            <span class="clue-badge">Meaning:</span>
+            <span class="clue-text" id="clueDefinition">A large animal</span>
+          </div>
+          <div class="clue-item sentence-box">
+            <span class="clue-badge">Sentence:</span>
+            <span class="clue-text" id="clueSentence">The giant <span class="word-blank">_______</span> walked through the safari.</span>
+          </div>
+        </div>
+
+        <div class="hints-accordion">
+          <button class="hint-toggle-btn" id="btnToggleChunk">
+            <span>🧩 Peek Syllables</span>
+            <span class="toggle-icon">▾</span>
+          </button>
+          <button class="hint-toggle-btn" id="btnToggleMnemonic">
+            <span>💡 Memory Trick (Mnemonic)</span>
+            <span class="toggle-icon">▾</span>
+          </button>
+        </div>
+
+        <div class="hint-reveal-box hidden" id="chunkRevealBox">
+          <div class="syllable-display" id="syllablesContainer"></div>
+          <p class="hint-caption">Break the word into 2-3 letter rhythm chunks rather than memorizing all letters!</p>
+        </div>
+
+        <div class="hint-reveal-box hidden" id="mnemonicRevealBox">
+          <div class="mnemonic-quote" id="mnemonicText"></div>
+          <p class="hint-caption">Visual memory hook so you never freeze when someone asks you to write it.</p>
+        </div>
+
+        <form class="spelling-form" id="spellingForm" autocomplete="off" onsubmit="return false;">
+          <div class="input-wrapper">
+            <input 
+              type="text" 
+              id="spellingInput" 
+              class="spelling-input" 
+              placeholder="Type the spelling here from memory... (Press Enter to check)" 
+              spellcheck="false" 
+              autocapitalize="none"
+              autocomplete="off"
+            />
+            <button type="submit" class="btn-check" id="btnSubmitWord">
+              <span>Check ✨</span>
+              <span class="key-tag">Enter</span>
+            </button>
+          </div>
+        </form>
+
+        <div class="feedback-box hidden" id="feedbackBox"></div>
+
+        <div class="action-footer">
+          <button class="btn-secondary" id="btnSkipWord">Skip Word ➔</button>
+          <button class="btn-next hidden" id="btnNextWord">Next Unmastered Word ➔</button>
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- 2. FULL PARAGRAPH DICTATION (SPEAK & WRITE) -->
+      <!-- ============================================== -->
+      <section id="paragraphDictationSection" class="game-section">
+        <div class="paragraph-header-zone">
+          <h2>🎙️ Paragraph Dictation Mode</h2>
+          <p>I speak, you type. When you click <strong>Check Dictation</strong> (or press Enter), see every mistake highlighted with correct spellings and memory tricks!</p>
+        </div>
+
+        <div class="paragraph-selector-tabs" id="dictationParagraphTabs"></div>
+
+        <div class="dictation-card">
+          <div class="dictation-toolbar">
+            <div class="dictation-audio-controls">
+              <button class="btn-audio-main btn-para-audio" id="btnDictationPlayCurrent">
+                <span>🔊 Speak Current Sentence</span>
+                <span class="audio-shortcut">Shortcut: R</span>
+              </button>
+              <button class="btn-audio-slow" id="btnDictationPrevSentence" title="Previous Sentence">
+                <span>⏮️ Prev</span>
+              </button>
+              <span class="sentence-counter-badge" id="dictationSentenceCounter">Sentence 1 of 4</span>
+              <button class="btn-audio-slow" id="btnDictationNextSentence" title="Next Sentence">
+                <span>Next ⏭️</span>
+              </button>
+              <button class="btn-audio-slow" id="btnDictationPlayFull">
+                <span>🔊 Hear Full Paragraph</span>
+              </button>
+            </div>
+            <div class="dictation-pace-toggle">
+              <label><input type="checkbox" id="dictationSlowToggle" /> 🐢 Slow Phonics</label>
+            </div>
+          </div>
+
+          <div class="dictation-input-zone">
+            <textarea 
+              id="dictationTextarea" 
+              class="dictation-textarea" 
+              placeholder="Listen to the voice and type the sentence here... When done with the paragraph, click 'Check Dictation' or press Ctrl+Enter!"
+              rows="6"
+              spellcheck="false"
+              autocapitalize="none"
+              autocomplete="off"
+            ></textarea>
+            <div class="dictation-bottom-bar">
+              <span class="dictation-word-count" id="dictationWordCount">0 words typed</span>
+              <div class="dictation-actions-group">
+                <button class="btn-secondary" id="btnClearDictation">Clear</button>
+                <button class="btn-check btn-check-dictation" id="btnVerifyDictation">
+                  <span>Check Dictation ✨</span>
+                  <span class="key-tag">Ctrl + Enter</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="dictation-result-box hidden" id="dictationResultBox">
+            <div class="dictation-score-header">
+              <div class="score-circle" id="dictationScoreCircle">95%</div>
+              <div>
+                <h3 id="dictationScoreHeadline">Excellent Work!</h3>
+                <p id="dictationScoreSubtext">You spelled 28 of 30 words correctly!</p>
+              </div>
+            </div>
+
+            <div class="dictation-diff-display" id="dictationDiffDisplay"></div>
+
+            <div class="dictation-mistakes-container" id="dictationMistakesContainer">
+              <h4>🎯 Words to Remember (Auto-Saved to Your Vault):</h4>
+              <div class="dictation-mistakes-grid" id="dictationMistakesGrid"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- 3. EVERYDAY GRAMMAR & PUNCTUATION STUDIO -->
+      <!-- ============================================== -->
+      <section id="grammarStudioSection" class="game-section">
+        <div class="grammar-header-zone">
+          <h2>✍️ Everyday Grammar & Punctuation Studio</h2>
+          <p>Master periods (<code>.</code>), apostrophes (<code>don't</code>), <code>a/an/the</code>, and <code>in/on/at</code> with practical exercises!</p>
+        </div>
+
+        <!-- Grammar Category Filter Pills -->
+        <div class="grammar-category-tabs" id="grammarCategoryTabs">
+          <button class="grammar-tab-btn active" data-cat="all">🌟 All Rules (10)</button>
+          <button class="grammar-tab-btn" data-cat="a_an_the">🅰️ A vs An vs The</button>
+          <button class="grammar-tab-btn" data-cat="in_on_at">📍 In vs On vs At</button>
+          <button class="grammar-tab-btn" data-cat="apostrophes">🔤 Don't & Can't (Apostrophes)</button>
+          <button class="grammar-tab-btn" data-cat="common_traps">⚠️ Common Traps (Able to / Means)</button>
+          <button class="grammar-tab-btn" data-cat="punctuation">🎯 Periods & Capitalization</button>
+        </div>
+
+        <!-- Interactive Grammar Quiz Card -->
+        <div class="grammar-quiz-card">
+          <div class="grammar-progress-row">
+            <span class="grammar-cat-tag" id="grammarCatTag">🅰️ A vs An vs The</span>
+            <span class="grammar-counter" id="grammarCounter">Question 1 of 10</span>
+          </div>
+
+          <div class="grammar-question" id="grammarQuestionText">
+            Choose the correct word: "I am proud to be ______ Indian."
+          </div>
+
+          <div class="grammar-options-grid" id="grammarOptionsGrid"></div>
+
+          <div class="grammar-explanation-box hidden" id="grammarExplanationBox">
+            <div class="grammar-explain-title" id="grammarExplainTitle">💡 Why this is correct:</div>
+            <p id="grammarExplainText"></p>
+          </div>
+
+          <div class="grammar-actions-row">
+            <button class="btn-next hidden" id="btnNextGrammarQuestion">Next Grammar Challenge ➔</button>
+          </div>
+        </div>
+
+        <!-- Live Sentence & Punctuation Cleaner Tool -->
+        <div class="sentence-fixer-card">
+          <h3>🪄 Live Sentence Punctuation Cleaner</h3>
+          <p>Type any unpunctuated thought without periods or capitals, and see how it looks cleanly written in natural English!</p>
+          
+          <div class="fixer-input-row">
+            <textarea 
+              id="rawSentenceInput" 
+              class="fixer-textarea" 
+              placeholder="e.g. i am 20 and as a indian i still cant write hindi i dont able to understand it"
+              rows="3"
+            ></textarea>
+            <button class="btn-check" id="btnCleanSentence">Clean Up Sentence ✨</button>
+          </div>
+
+          <div class="fixer-output-box hidden" id="fixerOutputBox">
+            <div class="fixer-output-header">
+              <span class="fixer-badge">✨ Natural English with Proper Punctuation:</span>
+            </div>
+            <div class="fixer-clean-text" id="fixerCleanText"></div>
+            <div class="fixer-breakdown-notes" id="fixerBreakdownNotes"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- 4. PARAGRAPH READING & HINGLISH VIEW -->
+      <!-- ============================================== -->
+      <section id="paragraphReaderSection" class="game-section">
+        <div class="paragraph-header-zone">
+          <h2>📖 Real-World Paragraph Reading</h2>
+          <p>Read along, listen to native audio, and click <strong>any word</strong> to see its Hinglish sound and spelling breakdown!</p>
+        </div>
+
+        <div class="paragraph-selector-tabs" id="paragraphSelectorTabs"></div>
+
+        <div class="paragraph-display-card">
+          <div class="paragraph-card-top">
+            <div>
+              <h3 class="paragraph-title" id="paraTitle">☕ Morning Routine</h3>
+              <p class="para-hinglish-title" id="paraHinglishTitle">Subah Ka Niyam</p>
+            </div>
+            <div class="para-audio-controls">
+              <button class="btn-audio-main btn-para-audio" id="btnPlayFullParagraph">
+                <span>🔊 Read Entire Paragraph</span>
+                <span class="audio-shortcut">Spacebar</span>
+              </button>
+              <button class="btn-audio-slow" id="btnStopParagraphAudio">
+                <span>⏹️ Stop</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="interactive-paragraph-box">
+            <div class="paragraph-english" id="paraEnglishContent"></div>
+            <div class="paragraph-translation-box">
+              <div class="trans-label">🇮🇳 Hinglish Meaning / Hindi Samjhayein:</div>
+              <p class="paragraph-hinglish-text" id="paraHinglishContent"></p>
+            </div>
+          </div>
+
+          <div class="word-quick-inspector hidden" id="wordQuickInspector">
+            <div class="inspector-top">
+              <div>
+                <span class="inspector-word" id="inspectorWord">morning</span>
+                <span class="inspector-phonetic" id="inspectorPhonetic">MOR-ning</span>
+              </div>
+              <button class="btn-close-inspector" id="btnCloseInspector">✕</button>
+            </div>
+            <div class="inspector-details">
+              <div><strong>🗣️ Hinglish Speak:</strong> <span id="inspectorHinglishSpeak">मॉर्निंग (mor-ning)</span></div>
+              <div><strong>🇮🇳 Hindi Meaning:</strong> <span id="inspectorHinglishMeaning">Subah</span></div>
+              <div><strong>🧩 Syllables:</strong> <span id="inspectorChunks">mor • ning</span></div>
+            </div>
+            <div class="inspector-actions">
+              <button class="btn-audio-small" id="btnInspectorSpeak">🔊 Speak Word</button>
+              <button class="btn-add-word" id="btnInspectorPractice">⚡ Practice This Spelling</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- 5. SYLLABLE CHUNK BUILDER MODE -->
+      <!-- ============================================== -->
+      <section id="syllableBuilderSection" class="game-section">
+        <div class="chunk-builder-intro">
+          <h2>🧩 Syllable Chunk Builder</h2>
+          <p>Assemble the word by clicking sound chunks in correct sequence. Builds rhythm and muscle memory!</p>
+        </div>
+
+        <div class="chunk-builder-card">
+          <div class="chunk-audio-row">
+            <button class="btn-audio-small" id="btnChunkPlayAudio">🔊 Hear Word (R)</button>
+            <span class="chunk-target-hint" id="chunkTargetMeaning">Meaning: Room or lodging</span>
+          </div>
+
+          <div class="assembled-slots" id="assembledSlots"></div>
+          <div class="slots-label">Click chunks below to build the word:</div>
+          <div class="scrambled-pool" id="scrambledPool"></div>
+
+          <div class="chunk-actions">
+            <button class="btn-secondary" id="btnResetChunks">↺ Reset</button>
+            <button class="btn-check" id="btnVerifyChunks">Verify Spelling ✨</button>
+          </div>
+
+          <div class="chunk-feedback hidden" id="chunkFeedback"></div>
+          <button class="btn-next hidden" id="btnNextChunkWord">Next Word ➔</button>
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- 6. SPOT THE TRAP (ERROR DETECTOR) -->
+      <!-- ============================================== -->
+      <section id="trapDetectorSection" class="game-section">
+        <div class="trap-intro">
+          <h2>🔍 Spot The Sneaky Trap</h2>
+          <p>Identify the real spelling among confusing traps (swapped vowels, wrong double letters)!</p>
+        </div>
+
+        <div class="trap-card">
+          <div class="trap-question" id="trapQuestionText">Which is the real spelling?</div>
+          <div class="trap-hint" id="trapWordMeaning">Meaning: Divided or apart</div>
+          <div class="trap-options-grid" id="trapOptionsGrid"></div>
+          <div class="trap-explanation hidden" id="trapExplanation"></div>
+          <button class="btn-next hidden" id="btnNextTrapWord">Next Trap ➔</button>
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- 7. TRICKY WORD VAULT -->
+      <!-- ============================================== -->
+      <section id="vaultSection" class="game-section">
+        <div class="vault-hero">
+          <div class="vault-hero-text">
+            <h2>📓 Your Tricky Word Vault</h2>
+            <p>Every word you make a mistake on lands here automatically. Train your exact weak spots!</p>
+          </div>
+          <button class="btn-train-vault" id="btnTrainVault">⚡ Practice Weak Words Now</button>
+        </div>
+
+        <div class="add-custom-card">
+          <h3>➕ Add Any Word You Encountered in Daily Life</h3>
+          <p>Type any difficult word from WhatsApp, office emails, or books to master it with audio & tricks.</p>
+          <div class="add-custom-row">
+            <input type="text" id="customWordInput" placeholder="e.g. silhouette or schedule" />
+            <input type="text" id="customHintInput" placeholder="Meaning or Hinglish hint (optional)" />
+            <button class="btn-add-word" id="btnAddCustomWord">Add to Vault</button>
+          </div>
+        </div>
+
+        <div class="vault-list-header">
+          <h3>Saved Words for Practice (<span id="vaultCountText">0</span>)</h3>
+          <button class="btn-text-danger" id="btnClearVault">Clear Mastered</button>
+        </div>
+
+        <div class="vault-items-grid" id="vaultItemsGrid"></div>
+      </section>
+
+    </main>
+
+    <!-- Footer with Tips & Shortcuts -->
+    <footer class="studio-footer">
+      <div class="footer-tip">
+        <span class="tip-spark">💡 Golden Rule:</span>
+        <span class="tip-content">One complete thought = One sentence with a period (<code>.</code>)! Next word starts with Capital.</span>
+      </div>
+      <div class="keyboard-helpers">
+        <span class="kbd-badge"><kbd>R</kbd> Speak</span>
+        <span class="kbd-badge"><kbd>Space</kbd> Audio</span>
+        <span class="kbd-badge"><kbd>Enter</kbd> Check</span>
+        <span class="kbd-badge"><kbd>Ctrl+Enter</kbd> Check Dictation</span>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Load 1,250+ Words Dataset First -->
+  <script src="words_data.js"></script>
+  <!-- Main Application Logic -->
+  <script src="app.js"></script>
+</body>
+</html>
